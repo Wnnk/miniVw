@@ -1,0 +1,42 @@
+{
+	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "添加水印"
+			}
+		},
+		{
+			"path": "pages/waterfall/waterfall",
+			"style": {
+				"navigationBarTitleText": "瀑布流"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "应用",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	},
+	"tabBar": {
+		"color": "#7A7E83",
+		"selectedColor": "#3cc51f",
+		"borderStyle": "black",
+		"backgroundColor": "#F8F8F8",
+		"list": [
+			{
+				"pagePath": "pages/index/index",
+				"text": "添加水印",
+				"iconPath": "static/images/logo.png",
+				"selectedIconPath": "static/images/logo.png"
+			},
+			{
+				"pagePath": "pages/waterfall/waterfall",
+				"text": "瀑布流",
+				"iconPath": "static/images/logo.png",
+				"selectedIconPath": "static/images/logo.png"
+			}
+		]
+	}
+}
