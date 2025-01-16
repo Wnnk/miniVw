@@ -12,8 +12,6 @@ node_modules
 dist
 *.local
 
-# 存在appID 等敏感信息，不上传到git
-src/manifest.json
 
 # Editor directories and files
 .idea

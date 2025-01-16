@@ -11,8 +11,26 @@
 			"style": {
 				"navigationBarTitleText": "瀑布流"
 			}
+		},
+		{
+			"path": "pages/profilePhoto/profilePhoto",
+			"style": {
+				"navigationBarTitleText": "图片合成"
+			}
+		},
+		{
+			"path": "pages/longScreenshot/longScreenshot",
+			"style": {
+				"navigationBarTitleText": "长截图",
+			  "navigationStyle": "custom",
+        "renderer": "skyline",
+        "componentFramework": "glass-easel"
+
+			}
 		}
 	],
+		"renderer": "skyline",
+		"componentFramework": "glass-easel",
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
 		"navigationBarTitleText": "应用",
@@ -28,6 +46,18 @@
 			{
 				"pagePath": "pages/index/index",
 				"text": "添加水印",
+				"iconPath": "static/images/logo.png",
+				"selectedIconPath": "static/images/logo.png"
+			},
+			{
+				"pagePath": "pages/longScreenshot/longScreenshot",
+				"text": "长截图",
+				"iconPath": "static/images/logo.png",
+				"selectedIconPath": "static/images/logo.png"
+			},
+			{
+				"pagePath": "pages/profilePhoto/profilePhoto",
+				"text": "图片合成",
 				"iconPath": "static/images/logo.png",
 				"selectedIconPath": "static/images/logo.png"
 			},
