@@ -2,10 +2,20 @@
 import { onShow } from '@dcloudio/uni-app';
 import { ref, watch } from 'vue'
 const profile = ref(null);
+const profileBg = ref(null);
 const profileStyle = ref("default");
+const defaultBg = [
+  {src:'https://img.yzcdn.cn/vant/cat.jpeg'},
+  {src: '../../static/images/default1.jpg'},
+  {src: '../../static/images/default2.jpg'},
+  {src: '../../static/images/default3.jpg'}
+]
+
+const toggle = ref(false);
+
 const canvasStyle = ref({
-  width: "500px",
-  height: "500px"
+  width: 500,
+  height: 500
 })
 uni.setStorageSync("profileStyle", profileStyle.value);
 /** 
@@ -18,10 +28,8 @@ const choosePhoto = () => {
     sourceType: ["album", "camera"],
     success: (res) => {
       profile.value = res.tempFiles[0];
-      uni.setStorageSync("profile", res.tempFiles[0]);
-      const bg =uni.getStorageSync("profileBg")
-      if(bg){
-        compositeImage(profile.value, bg)
+      if(profileBg.value){
+        compositeImage(profile.value, profileBg.value)
       }
     },
     fail: (err) => {
@@ -43,55 +51,42 @@ const choosePhoto = () => {
 **/
 const compositeImage = (image, bg) => {
 
-  const canvas = uni.createCanvasContext("compositing");
-  /* 绘制背景 */
+  const bgCtx = uni.createCanvasContext("bg");
+  const ctx = uni.createCanvasContext("image");
+
   const query = uni.createSelectorQuery().select('.profile__photo').boundingClientRect();
   let width = 0;
   let height = 0;
   query.exec((res) => {
     width = res[0].width;
     height = res[0].height;
-    canvasStyle.value.width = `${width}px`;
-    canvasStyle.value.height = `${height}px`;
-    canvas.clearRect(0, 0, width, height);
-    console.log(image)
+    canvasStyle.value.width = `${width}`;
+    canvasStyle.value.height = `${height}`;
+    bgCtx.clearRect(0, 0, width, height);
+    ctx.clearRect(0, 0, width - 40, height - 40);
     if (profileStyle.value === "circle") {
-      canvas.beginPath();
-      canvas.arc(width / 2, height / 2, width / 2, 0, 2 * Math.PI);
-      canvas.stroke();
-      canvas.beginPath();
-      canvas.arc(width / 2, height / 2, width / 2 - 10, 0, 2 * Math.PI);
-      canvas.stroke();
-
-      canvas.beginPath();
-      canvas.arc(width / 2, height / 2, width / 2 , 0, 2 * Math.PI);
-      canvas.arc(width / 2, height / 2, width / 2 - 10, 0, 2 * Math.PI, true);
-      canvas.clip();
-      canvas.drawImage(bg.tempFilePath, 0, 0, width, height);
-      canvas.drawImage(image.tempFilePath, 0, 0, width, height);
-      canvas.draw();
+      bgCtx.save();
+      bgCtx.beginPath();
+      bgCtx.arc(width / 2, height / 2, width / 2, 0, 2 * Math.PI);
+      bgCtx.clip();
+      bgCtx.drawImage(bg.tempFilePath, 0, 0, width, height);
+      bgCtx.restore();
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc((width-40) / 2, (height-40) / 2, (width-40) / 2, 0, 2 * Math.PI);
+      ctx.clip();
+      ctx.drawImage(image.tempFilePath, 0, 0, width, height);
+      bgCtx.draw();
+      ctx.draw();
     } else {
-      canvas.drawImage(bg.tempFilePath, 0, 0, width, height);
-      canvas.clearRect(20, 20, width - 40, height - 40);
-      canvas.draw();
+      bgCtx.drawImage(bg.tempFilePath, 0, 0, width, height);
+      bgCtx.draw();
+      ctx.drawImage(image.tempFilePath, 0, 0, width, height);
+      ctx.draw();
     }
   });
  
-  // if (profileStyle.value === "circle") {
-  //   canvas.arc(width / 2, height / 2, width / 2, 0, 2 * Math.PI);
-  //   canvas.clip();
-  //   let img = new Image();
-  //   img.src = bg.tempFilePath;
-  //   img.onload = function () {
-  //     img.width = width;
-  //     img.height = height;
-  //     canvas.drawImage(img, 0, 0, width, height);
-  //   };
-  // } else {
-  //   canvas.drawImage(image, 0, 0, width, height);
-  //   canvas.draw();
-    
-  // }
+
   
 }
 
@@ -108,13 +103,12 @@ const uploadBg = () => {
     mediaType: ["image"],
     sourceType: ["album", "camera"],
     success: (res) => {
-      uni.setStorageSync("profileBg", res.tempFiles[0]);
+      profileBg.value = res.tempFiles[0];
       uni.showToast({
         title: "选择背景成功",
       });
-      const profile = uni.getStorageSync("profile")
-      if(profile){
-        compositeImage(profile, res.tempFiles[0])
+      if(profile.value){
+        compositeImage(profile.value, profileBg.value)
       }
     },
     fail: (err) => {
@@ -125,10 +119,23 @@ const uploadBg = () => {
   })
 }
 
+const changeToggle = (event) => {
+  if(event.target.id  !== 'mask') return;
+  toggle.value = !toggle.value;
+}
+
+const chooseDefaultBg = (bg) => {
+  profileBg.value = {
+    tempFilePath: bg.src
+  };
+  toggle.value = false;
+  if(profile.value){
+    compositeImage(profile.value, profileBg.value)
+  }
+}
 
 onShow(() => {
-  // uni.removeStorageSync("profileBg");
-  // uni.removeStorageSync("profile");
+
 })
 
 </script>
@@ -151,11 +158,21 @@ onShow(() => {
       </view>
       <view class="profile__compositing">
         <button @click="uploadBg">上传背景</button>
-        <button>使用系统背景</button>
+        <button @click=" () => { toggle = true}">使用系统背景</button>
       </view>
-       <canvas canvas-id="compositing" :style="{width: canvasStyle.width, height: canvasStyle.height}"></canvas>
+      <view class="canvas-container" :style="{width: canvasStyle.width +'px', height: canvasStyle.height +'px'}">
+       <canvas canvas-id="bg" :style="{width: canvasStyle.width + 'px', height: canvasStyle.height + 'px',position: 'absolute', left: 0, top: 0}"></canvas>
+       <canvas canvas-id="image" :style="{width: canvasStyle.width - 40 + 'px', height: canvasStyle.height - 40 + 'px',position: 'absolute', left: `20px`, top: `20px`}"></canvas>
+      </view>
+      
     </view>
-   
+    <view class="mask" v-show="toggle" @click="changeToggle" id="mask">
+      <view class="mask__container">
+        <view class="mask__bg" v-for="bg in defaultBg" :key="bg.name" >
+          <image :src="bg.src" class="mask__bg__img" mode="aspectFill" @click="chooseDefaultBg(bg)" />
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
@@ -183,6 +200,42 @@ onShow(() => {
 .style__btn{
  margin: 10rpx 10rpx;
 }
+.canvas-container{
+  position: relative;
+}
 
+
+.mask{
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 999;
+}
+.mask__container{
+  background-color: #fff;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 60%;
+  border-radius: 10px 10px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  z-index: 1000;
+}
+
+.mask__bg{
+  margin: 10rpx;
+  width: calc(33.33% - 20rpx);
+  height: 200rpx;
+}
+.mask__bg__img{
+  width: 100%;
+  height: 100%;
+}
 
 </style>
